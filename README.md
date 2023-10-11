@@ -13,7 +13,9 @@ MRTrix3 (https://www.mrtrix.org/download/)
 In addition to the software, the fetal body atlas ased in the pipelineis the one described in https://www.sciencedirect.com/science/article/pii/S1361841522001311
 
 nnUNet
+
 MONAI
+
 fsl
 
 Python libraries required: 
