@@ -3,14 +3,14 @@ Here, we present an automatic pipeline for quantitatively analyzing fetal body o
 
 The pipieline was developed and tested on Ubuntu 20.04.
 
-Note: The script is currently a work in progress for sharing, everything is hard-coded for local computers. We are in the process of making the pipeilne more distributable via a Docker container
+Note: The script is currently a work in progress for sharing, everything is hard-coded for local computers. We are in the process of making the pipeline more distributable via a Docker container
 
 ## Software pre-requisites: 
 
 MIRTK/SVRTK (https://github.com/SVRTK/SVRTK) install as per instructions
 MRTrix3 (https://www.mrtrix.org/download/)
 
-In addition to the software, the fetal body atlas ased in the pipelineis the one described in https://www.sciencedirect.com/science/article/pii/S1361841522001311
+In addition to the software, the fetal body atlas ased in the pipeline is the one described in https://www.sciencedirect.com/science/article/pii/S1361841522001311
 
 nnUNet
 
