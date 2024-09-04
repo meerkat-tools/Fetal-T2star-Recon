@@ -1,9 +1,11 @@
-# Fetal-T2star-Recon
+# FOREST - Fetal Organ T2* Relaxometry at Low Field Strength
 Here, we present an automatic pipeline for quantitatively analyzing fetal body organs using T2* relaxometry as described in Payette et al "An Automated Pipeline for Quantitative T2* Fetal Body MRI and Segmentation at Low Field" - https://link.springer.com/chapter/10.1007/978-3-031-43990-2_34
 
 The pipieline was developed and tested on Ubuntu 20.04.
 
-Note: The script is currently a work in progress for sharing, everything is hard-coded for local computers. We are in the process of making the pipeline more distributable via a Docker container
+New: We have added an automatic pipeline for quantitatively analyzing fetal brain tissues using T2* relaxometry!!
+
+Note: The script is currently a work in progress for sharing. We are in the process of making the pipeline more distributable via a Docker container
 
 ## Software pre-requisites: 
 
@@ -15,8 +17,6 @@ In addition to the software, the fetal body atlas ased in the pipeline is the on
 nnUNet
 
 MONAI
-
-fsl
 
 Python libraries required: 
 
