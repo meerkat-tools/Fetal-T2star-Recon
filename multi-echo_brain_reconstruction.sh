@@ -19,7 +19,7 @@
 
 # setting up directories
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-echo "Running script: ${SCRIPT_DIR}/multi-echo_brain_reconstruction_github.sh"
+echo "Running script: ${SCRIPT_DIR}/multi-echo_brain_reconstruction.sh"
 cd $SCRIPT_DIR
 
 monai_check_path_roi=${SCRIPT_DIR}/monai-checkpoints-unet-t2s-brain-body-placenta-loc-3-lab
