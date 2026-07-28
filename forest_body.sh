@@ -17,7 +17,7 @@
 # Input File Structure:
 # folder structure assumed in the path to files:
 # Folder with multi-echo files in nifti format: ME/n[scan_number]/*nii.gz
-# Folder with multi-echo dicom files: ME/d[scan_number]/*.dcm
+# In the this ME/n[scan_number] folder, place a .txt file listing the echo times in ms
 
 
 # setting up directories
@@ -32,9 +32,9 @@ echo "Fetal Template: " $template_path
 echo "Fetal Thorax Template: " $thorax_template
 echo
 
-export nnUNet_raw="/home/kelly/t2s_pipelines/fetal_nnunet/nnUNet_raw/"
-export nnUNet_results="/home/kelly/t2s_pipelines/fetal_nnunet/nnUNet_results/"
-export nnUNet_preprocessed="/home/kelly/t2s_pipelines/fetal_nnunet/nnUNet_preprocessed/"
+export nnUNet_raw="$SCRIPT_DIR/fetal_nnunet/nnUNet_raw/"
+export nnUNet_results="$SCRIPT_DIR/fetal_nnunet/nnUNet_results/"
+export nnUNet_preprocessed="$SCRIPT_DIR/fetal_nnunet/nnUNet_preprocessed/"
 
 # folder with input files to be processed
 org_files=$1
@@ -185,29 +185,22 @@ fi
 b=0
 for mask_file in $(ls stack-t2s-e01/segmentation-results-global/)
 do
-	# dilate the extracted label
-	#input: global-roi-masks/mask-body-${jj}-0.nii.gz output: global-roi-masks/mask-body-${jj}-0.nii.gz
+	# dilate and erode the extracted label
 	mirtk dilate-image stack-t2s-e01/segmentation-results-global/$mask_file stack-t2s-e01/segmentation-results-global_dilated/$mask_file -iterations 2
 	
-	# erode label
-	#input: global-roi-masks/mask-body-${jj}-0.nii.gz output: global-roi-masks/mask-body-${jj}-0.nii.gz
 	mirtk erode-image stack-t2s-e01/segmentation-results-global_dilated/$mask_file stack-t2s-e01/segmentation-results-global_dilated/$mask_file -iterations 2
     
-    # dilate label again, creates a temporary very dilated label image (dl-body-m.nii.gz, dl-brain-m.nii.gz) that gets written over in every loop
-    #input: global-roi-masks/mask-body-${jj}-0.nii.gz output: stack-t2s-e0${i}/dl-body-m.nii.gz
-    mirtk dilate-image stack-t2s-e01/segmentation-results-global_dilated/$mask_file stack-t2s-e01/segmentation-results-global_dilated/$mask_file -iterations 7
-	
-	#mask image
-	#input: recon-stacks-body/cropped-stack-${jj}.nii.gz mask: dl-body-m.nii.gz output: recon-stacks-body/cropped-stack-${jj}.nii.gz
+        # dilate label again, creates a temporary very dilated label image (dl-body-m.nii.gz, dl-brain-m.nii.gz) that gets written over in every loop
+        mirtk dilate-image stack-t2s-e01/segmentation-results-global_dilated/$mask_file stack-t2s-e01/segmentation-results-global_dilated/$mask_file -iterations 7
 		
 	# crop images from all echos for reconstruction
-    for ((k=0; k<$nr_echos; k++)); do
-    # mirtk mask-image stack-t2s-e0${i}/recon-stacks-body/cropped-stack-${jj}.nii.gz stack-t2s-e0${i}/dl-body-m.nii.gz stack-t2s-e0${i}/recon-stacks-body/cropped-stack-${jj}.nii.gz
-    if [ -f stack-t2s-e0${k}/original-files/${k}-t2s-e0${k}_0${b}.nii.gz ]; then
+        for ((k=0; k<$nr_echos; k++)); do
+    
+        if [ -f stack-t2s-e0${k}/original-files/${k}-t2s-e0${k}_0${b}.nii.gz ]; then
    
-        mirtk mask-image stack-t2s-e0${k}/original-files/${k}-t2s-e0${k}_0${b}.nii.gz stack-t2s-e01/segmentation-results-global_dilated/$mask_file stack-t2s-e0${k}/recon-stacks-body/${k}-${mask_file:2:-7}_masked.nii.gz
-    else
-        mirtk mask-image stack-t2s-e0${k}/original-files/${k}-t2s-e0${k}_${b}.nii.gz stack-t2s-e01/segmentation-results-global_dilated/$mask_file stack-t2s-e0${k}/recon-stacks-body/${k}-${mask_file:2:-7}_masked.nii.gz
+            mirtk mask-image stack-t2s-e0${k}/original-files/${k}-t2s-e0${k}_0${b}.nii.gz stack-t2s-e01/segmentation-results-global_dilated/$mask_file stack-t2s-e0${k}/recon-stacks-body/${k}-${mask_file:2:-7}_masked.nii.gz
+        else
+            mirtk mask-image stack-t2s-e0${k}/original-files/${k}-t2s-e0${k}_${b}.nii.gz stack-t2s-e01/segmentation-results-global_dilated/$mask_file stack-t2s-e0${k}/recon-stacks-body/${k}-${mask_file:2:-7}_masked.nii.gz
 
     fi
    
@@ -323,7 +316,6 @@ echo
     
 q1=1; q2=2; q3=3; q4=4
 
-#org_roi=(12 2 6 116)
 new_roi=(1 2 3 4)
 
 # extracts each of the 4 labels
@@ -332,10 +324,10 @@ do
     q=${new_roi[$j]}
         
     #extract each label, store in local roi folder
-    # input: monai-segmentation-results-local/cnn-*.nii*; output: local-roi-masks/mask-body-${jj}-${q}.nii.gz
-	mirtk extract-label reo_labels_PP/*gz reo_sep_labels/mask-body-${q}.nii.gz ${q} ${q}
-	# input: local-roi-masks/mask-body-${jj}-${q}.nii.gz; output: local-roi-masks/mask-body-${jj}-${q}.nii.gz
-	mirtk extract-connected-components reo_sep_labels/mask-body-${q}.nii.gz reo_sep_labels/mask-body-${q}.nii.gz
+    
+    mirtk extract-label reo_labels_PP/*gz reo_sep_labels/mask-body-${q}.nii.gz ${q} ${q}
+	
+    mirtk extract-connected-components reo_sep_labels/mask-body-${q}.nii.gz reo_sep_labels/mask-body-${q}.nii.gz
 
 done
 
@@ -350,17 +342,11 @@ mkdir reo-dofs
 # creates an affine dof matrix 
 mirtk init-dof init.dof  
 		
-#z1=12; z2=2; z3=6; z4=116	
+
 z1=1; z2=2; z3=3; z4=4
 	
 total_n_landmarks=4
 selected_n_landmarks=4
-
-#mirtk register-landmarks ${template_path}/in-atlas-space-dsvr.nii.gz stack-t2s-e0${i}/stack-files/stack-${jj}.nii.gz stack-t2s-e0${i}/init.dof stack-t2s-e0${i}/reo-dofs/dof-to-atl-${jj}.dof ${total_n_landmarks} ${selected_n_landmarks} ${template_path}/final-mask-${z1}.nii.gz ${template_path}/final-mask-${z2}.nii.gz ${template_path}/final-mask-${z3}.nii.gz ${template_path}/final-mask-${z4}.nii.gz  stack-t2s-e0${i}/organ-roi-masks/mask-${jj}-${z1}.nii.gz stack-t2s-e0${i}/organ-roi-masks/mask-${jj}-${z2}.nii.gz stack-t2s-e0${i}/organ-roi-masks/mask-${jj}-${z3}.nii.gz stack-t2s-e0${i}/organ-roi-masks/mask-${jj}-${z4}.nii.gz 
-# Function for rigid landmark-based point registration of two images (the 
-# minimum number of landmarks is 4).
-# The landmark coordinates are computed as the centre of the input binary masks
-# register generated local masks to template masks
 
 mkdir ../reconstructions
 echo "registering me recon to template"
@@ -383,11 +369,6 @@ for nr_channel in $(seq 0 $nr_channels); do
 mirtk edit-image reconstructions/recon_struct_body_e0${nr_channel}.nii.gz reconstructions/recon_struct_body_e0${nr_channel}.nii.gz -origin 0 0 0 
 
 done
-
-#mirtk edit-image reconstructions/t2map_from_recon_body.nii.gz reconstructions/t2map_from_recon_body.nii.gz -origin 0 0 0    
-#mirtk edit-image reconstructions/recon_struct_body_mask.nii.gz reconstructions/recon_struct_body_mask.nii.gz -origin 0 0 0
-		
-
 
 
 echo 
@@ -412,13 +393,9 @@ mkdir reconstructions/body_seg
 
 conda activate venv_nnunetv2 
 cp reconstructions/recon_struct_body_e01.nii.gz reconstructions/body_seg/recon_struct_body_e01_0000.nii.gz
-#cp reconstructions/recon_struct_body_e01_masked.nii.gz reconstructions/body_seg/recon_struct_body_e01_masked_0000.nii.gz
 
-#nnUNetv2_predict -d Dataset002_prestobody -i reconstructions/body_seg/ -o reconstructions/body_seg_results/ -f 0 1 2 3 4 -tr nnUNetTrainer -c 3d_fullres -p nnUNetPlans
-#nnUNetv2_apply_postprocessing -i reconstructions/body_seg_results -o reconstructions/body_seg_results_PP -pp_pkl_file ${SCRIPT_DIR}/fetal_nnunet/nnUNet_results/Dataset002_prestobody/nnUNetTrainer__nnUNetPlans__3d_fullres/crossval_results_folds_0_1_2_3_4/postprocessing.pkl -np 8 -plans_json ${SCRIPT_DIR}/fetal_nnunet/nnUNet_results/Dataset002_prestobody/nnUNetTrainer__nnUNetPlans__3d_fullres/crossval_results_folds_0_1_2_3_4/plans.json
-
-nnUNetv2_predict -d Dataset002_prestobody -i  reconstructions/body_seg/ -o reconstructions/body_seg_results/ -f 0 1 2 3 4 -tr nnUNetTrainer -c 3d_fullres -p nnUNetPlans
-nnUNetv2_apply_postprocessing -i reconstructions/body_seg_results -o reconstructions/body_seg_results_PP -pp_pkl_file ${SCRIPT_DIR}/fetal_nnunet/nnUNet_results/Dataset002_prestobody/nnUNetTrainer__nnUNetPlans__3d_fullres/crossval_results_folds_0_1_2_3_4/postprocessing.pkl -np 8 -plans_json ${SCRIPT_DIR}/fetal_nnunet/nnUNet_results/Dataset002_prestobody/nnUNetTrainer__nnUNetPlans__3d_fullres/crossval_results_folds_0_1_2_3_4/plans.json
+nnUNetv2_predict -d Dataset002_FOREST_Body -i  reconstructions/body_seg/ -o reconstructions/body_seg_results/ -f 0 1 2 3 4 -tr nnUNetTrainer -c 3d_fullres -p nnUNetPlans
+nnUNetv2_apply_postprocessing -i reconstructions/body_seg_results -o reconstructions/body_seg_results_PP -pp_pkl_file ${SCRIPT_DIR}/fetal_nnunet/nnUNet_results/Dataset002_FOREST_Body/nnUNetTrainer__nnUNetPlans__3d_fullres/crossval_results_folds_0_1_2_3_4/postprocessing.pkl -np 8 -plans_json ${SCRIPT_DIR}/fetal_nnunet/nnUNet_results/Dataset002_FOREST_Body/nnUNetTrainer__nnUNetPlans__3d_fullres/crossval_results_folds_0_1_2_3_4/plans.json
 
 
 cp reconstructions/body_seg_results_PP/recon_struct_body_e01.nii.gz reconstructions/recon_struct_body_organ_labels.nii.gz
@@ -427,7 +404,7 @@ rm -r reconstructions/body_seg_results/
 rm -r reconstructions/body_seg_results_PP/
 conda deactivate
 
-# rm -r processing_body
+rm -r processing_body
 
 
 
