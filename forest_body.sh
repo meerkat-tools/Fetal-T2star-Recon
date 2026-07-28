@@ -125,14 +125,14 @@ do
     mkdir stack-t2s-e0${i}/recon-stacks-body/
     
     # sets voxels = nan and voxels >100000000 to 0
-	mirtk nan ${all_og_stacks[i]}  100000000
+	nan ${all_og_stacks[i]}  100000000
 	# set time resolution to 10ms
-	mirtk edit-image ${all_og_stacks[i]}  ${all_og_stacks[i]} -dt 10 
+	edit-image ${all_og_stacks[i]}  ${all_og_stacks[i]} -dt 10 
 	
 	# rescales images to be between 0 and 1500
-    mirtk convert-image ${all_og_stacks[i]} ${all_og_stacks[i]::-7}_rescaled.nii.gz -rescale 0 1500
-	mirtk extract-image-region ${all_og_stacks[i]} stack-t2s-e0${i}/original-files/${i}-t2s-e0${i} -split 3 	
-    mirtk extract-image-region ${all_og_stacks[i]::-7}_rescaled.nii.gz stack-t2s-e0${i}/org-files-packages/${i}-t2s-e0${i} -split 3 	
+    convert-image ${all_og_stacks[i]} ${all_og_stacks[i]::-7}_rescaled.nii.gz -rescale 0 1500
+	extract-image-region ${all_og_stacks[i]} stack-t2s-e0${i}/original-files/${i}-t2s-e0${i} -split 3 	
+    extract-image-region ${all_og_stacks[i]::-7}_rescaled.nii.gz stack-t2s-e0${i}/org-files-packages/${i}-t2s-e0${i} -split 3 	
 
 done
 
@@ -186,21 +186,21 @@ b=0
 for mask_file in $(ls stack-t2s-e01/segmentation-results-global/)
 do
 	# dilate and erode the extracted label
-	mirtk dilate-image stack-t2s-e01/segmentation-results-global/$mask_file stack-t2s-e01/segmentation-results-global_dilated/$mask_file -iterations 2
+	dilate-image stack-t2s-e01/segmentation-results-global/$mask_file stack-t2s-e01/segmentation-results-global_dilated/$mask_file -iterations 2
 	
-	mirtk erode-image stack-t2s-e01/segmentation-results-global_dilated/$mask_file stack-t2s-e01/segmentation-results-global_dilated/$mask_file -iterations 2
+	erode-image stack-t2s-e01/segmentation-results-global_dilated/$mask_file stack-t2s-e01/segmentation-results-global_dilated/$mask_file -iterations 2
     
         # dilate label again, creates a temporary very dilated label image (dl-body-m.nii.gz, dl-brain-m.nii.gz) that gets written over in every loop
-        mirtk dilate-image stack-t2s-e01/segmentation-results-global_dilated/$mask_file stack-t2s-e01/segmentation-results-global_dilated/$mask_file -iterations 7
+        dilate-image stack-t2s-e01/segmentation-results-global_dilated/$mask_file stack-t2s-e01/segmentation-results-global_dilated/$mask_file -iterations 7
 		
 	# crop images from all echos for reconstruction
         for ((k=0; k<$nr_echos; k++)); do
     
         if [ -f stack-t2s-e0${k}/original-files/${k}-t2s-e0${k}_0${b}.nii.gz ]; then
    
-            mirtk mask-image stack-t2s-e0${k}/original-files/${k}-t2s-e0${k}_0${b}.nii.gz stack-t2s-e01/segmentation-results-global_dilated/$mask_file stack-t2s-e0${k}/recon-stacks-body/${k}-${mask_file:2:-7}_masked.nii.gz
+            mask-image stack-t2s-e0${k}/original-files/${k}-t2s-e0${k}_0${b}.nii.gz stack-t2s-e01/segmentation-results-global_dilated/$mask_file stack-t2s-e0${k}/recon-stacks-body/${k}-${mask_file:2:-7}_masked.nii.gz
         else
-            mirtk mask-image stack-t2s-e0${k}/original-files/${k}-t2s-e0${k}_${b}.nii.gz stack-t2s-e01/segmentation-results-global_dilated/$mask_file stack-t2s-e0${k}/recon-stacks-body/${k}-${mask_file:2:-7}_masked.nii.gz
+            mask-image stack-t2s-e0${k}/original-files/${k}-t2s-e0${k}_${b}.nii.gz stack-t2s-e01/segmentation-results-global_dilated/$mask_file stack-t2s-e0${k}/recon-stacks-body/${k}-${mask_file:2:-7}_masked.nii.gz
 
     fi
    
@@ -230,15 +230,15 @@ cd stack-t2s-e01/
 #calculate the median average template
 nStacks=$(ls recon-stacks-body/*.nii* | wc -l)
 
-mirtk average-images selected_template.nii.gz recon-stacks-body/*.nii*
-mirtk resample-image selected_template.nii.gz selected_template.nii.gz -size 1 1 1
-mirtk average-images selected_template.nii.gz recon-stacks-body/*.nii* -target selected_template.nii.gz
+average-images selected_template.nii.gz recon-stacks-body/*.nii*
+resample-image selected_template.nii.gz selected_template.nii.gz -size 1 1 1
+average-images selected_template.nii.gz recon-stacks-body/*.nii* -target selected_template.nii.gz
 
-mirtk average-images average_mask_cnn.nii.gz segmentation-results-global/*.nii* -target selected_template.nii.gz
-mirtk convert-image average_mask_cnn.nii.gz average_mask_cnn.nii.gz -short
-mirtk dilate-image average_mask_cnn.nii.gz average_mask_cnn.nii.gz -iterations 2
+average-images average_mask_cnn.nii.gz segmentation-results-global/*.nii* -target selected_template.nii.gz
+convert-image average_mask_cnn.nii.gz average_mask_cnn.nii.gz -short
+dilate-image average_mask_cnn.nii.gz average_mask_cnn.nii.gz -iterations 2
     	
-mirtk mask-image selected_template.nii.gz average_mask_cnn.nii.gz masked-selected_template.nii.gz
+mask-image selected_template.nii.gz average_mask_cnn.nii.gz masked-selected_template.nii.gz
 
 number_of_stacks=$(ls recon-stacks-body/*.nii* | wc -l)
 cd ../ 
@@ -265,9 +265,9 @@ done
 
 mkdir out-proc-recon 
 cd out-proc-recon
-echo mirtk reconstructFFD ${roi_recon}-output.nii.gz ${number_of_stacks} ../stack-t2s-e01/recon-stacks-body/*.nii.gz --mc_n ${nr_channels} --mc_stacks ${channel_text} -mask ../stack-t2s-e01/average_mask_cnn.nii.gz -template ../stack-t2s-e01/selected_template.nii.gz -default_thickness ${default_thickness} -iterations 2 -cp 12 5 -no_robust_statistics -resolution ${default_resolution} -delta 150 -lambda 0.02 -structural -lastIter 0.015 -no_intensity_matching -dilation 7
 
-mirtk reconstructFFD ${roi_recon}-output.nii.gz ${number_of_stacks} ../stack-t2s-e01/recon-stacks-body/*.nii.gz --mc_n ${nr_channels} --mc_stacks ${channel_text} -mask ../stack-t2s-e01/average_mask_cnn.nii.gz -template ../stack-t2s-e01/selected_template.nii.gz -default_thickness ${default_thickness} -iterations 2 -cp 12 5 -no_robust_statistics -resolution ${default_resolution} -delta 150 -lambda 0.02 -structural -lastIter 0.015 -no_intensity_matching -dilation 7
+
+reconstructFFD ${roi_recon}-output.nii.gz ${number_of_stacks} ../stack-t2s-e01/recon-stacks-body/*.nii.gz --mc_n ${nr_channels} --mc_stacks ${channel_text} -mask ../stack-t2s-e01/average_mask_cnn.nii.gz -template ../stack-t2s-e01/selected_template.nii.gz -default_thickness ${default_thickness} -iterations 2 -cp 12 5 -no_robust_statistics -resolution ${default_resolution} -delta 150 -lambda 0.02 -structural -lastIter 0.015 -no_intensity_matching -dilation 7
 
 mv DSVR-output.nii.gz ../recon_struct_body_e01.nii.gz
 for nr_channel in $(seq 0 $nr_channels); do
@@ -283,7 +283,7 @@ cd ../
 
 #mask body images
 for nr_channel in $(seq 0 $nr_channels); do
-mirtk mask-image recon_struct_body_e0${nr_channel}.nii.gz stack-t2s-e01/average_mask_cnn.nii.gz recon_struct_body_e0${nr_channel}_masked.nii.gz 
+mask-image recon_struct_body_e0${nr_channel}.nii.gz stack-t2s-e01/average_mask_cnn.nii.gz recon_struct_body_e0${nr_channel}_masked.nii.gz 
 done
 
 echo 
@@ -325,9 +325,9 @@ do
         
     #extract each label, store in local roi folder
     
-    mirtk extract-label reo_labels_PP/*gz reo_sep_labels/mask-body-${q}.nii.gz ${q} ${q}
+    extract-label reo_labels_PP/*gz reo_sep_labels/mask-body-${q}.nii.gz ${q} ${q}
 	
-    mirtk extract-connected-components reo_sep_labels/mask-body-${q}.nii.gz reo_sep_labels/mask-body-${q}.nii.gz
+    extract-connected-components reo_sep_labels/mask-body-${q}.nii.gz reo_sep_labels/mask-body-${q}.nii.gz
 
 done
 
@@ -340,7 +340,7 @@ echo
 
 mkdir reo-dofs
 # creates an affine dof matrix 
-mirtk init-dof init.dof  
+init-dof init.dof  
 		
 
 z1=1; z2=2; z3=3; z4=4
@@ -350,23 +350,17 @@ selected_n_landmarks=4
 
 mkdir ../reconstructions
 echo "registering me recon to template"
-mirtk register-landmarks ${template_path}/in-atlas-space-dsvr.nii.gz ../reconstructions/recon_struct_body_e01.nii.gz init.dof reo-dofs/dof-to-atl.dof ${total_n_landmarks} ${selected_n_landmarks} ${template_path}/final-mask-${z1}.nii.gz ${template_path}/final-mask-${z2}.nii.gz ${template_path}/final-mask-${z3}.nii.gz ${template_path}/final-mask-${z4}.nii.gz  reo_sep_labels/mask-body-${z1}.nii.gz reo_sep_labels/mask-body-${z2}.nii.gz reo_sep_labels/mask-body-${z3}.nii.gz reo_sep_labels/mask-body-${z4}.nii.gz 
+register-landmarks ${template_path}/in-atlas-space-dsvr.nii.gz ../reconstructions/recon_struct_body_e01.nii.gz init.dof reo-dofs/dof-to-atl.dof ${total_n_landmarks} ${selected_n_landmarks} ${template_path}/final-mask-${z1}.nii.gz ${template_path}/final-mask-${z2}.nii.gz ${template_path}/final-mask-${z3}.nii.gz ${template_path}/final-mask-${z4}.nii.gz  reo_sep_labels/mask-body-${z1}.nii.gz reo_sep_labels/mask-body-${z2}.nii.gz reo_sep_labels/mask-body-${z3}.nii.gz reo_sep_labels/mask-body-${z4}.nii.gz 
 
 for nr_channel in $(seq 0 $nr_channels); do
-mirtk edit-image recon_struct_body_e0${nr_channel}_masked.nii.gz ../reconstructions/recon_struct_body_e0${nr_channel}.nii.gz -dofin_i reo-dofs/dof-to-atl.dof
-mirtk transform-image ../reconstructions/recon_struct_body_e0${nr_channel}.nii.gz ../reconstructions/recon_struct_body_e0${nr_channel}.nii.gz -target ${template_path}/in-atlas-space-dsvr.nii.gz
+edit-image recon_struct_body_e0${nr_channel}_masked.nii.gz ../reconstructions/recon_struct_body_e0${nr_channel}.nii.gz -dofin_i reo-dofs/dof-to-atl.dof
+transform-image ../reconstructions/recon_struct_body_e0${nr_channel}.nii.gz ../reconstructions/recon_struct_body_e0${nr_channel}.nii.gz -target ${template_path}/in-atlas-space-dsvr.nii.gz
 
 done
 
-
-#mirtk edit-image t2map_from_recon_body.nii.gz ../reconstructions/t2map_from_recon_body.nii.gz -dofin_i reo-dofs/dof-to-atl.dof
-#mirtk transform-image ../reconstructions/t2map_from_recon_body.nii.gz ../reconstructions/t2map_from_recon_body.nii.gz -target ${template_path}/in-atlas-space-dsvr.nii.gz
-#mirtk edit-image stack-t2s-e01/average_mask_cnn.nii.gz ../reconstructions/recon_struct_body_mask.nii.gz -dofin_i reo-dofs/dof-to-atl.dof
-#mirtk transform-image ../reconstructions/recon_struct_body_mask.nii.gz ../reconstructions/recon_struct_body_mask.nii.gz -target ${template_path}/in-atlas-space-dsvr.nii.gz -labels 
-
 cd ../
 for nr_channel in $(seq 0 $nr_channels); do
-mirtk edit-image reconstructions/recon_struct_body_e0${nr_channel}.nii.gz reconstructions/recon_struct_body_e0${nr_channel}.nii.gz -origin 0 0 0 
+edit-image reconstructions/recon_struct_body_e0${nr_channel}.nii.gz reconstructions/recon_struct_body_e0${nr_channel}.nii.gz -origin 0 0 0 
 
 done
 
