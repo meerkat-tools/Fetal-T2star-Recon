@@ -51,13 +51,17 @@ In addition to the software, the fetal body atlas used in the pipeline is the on
 
 4. Review all acquired dynamics, note which dynamics (if any) you would like to exclude from the reconstruction due to motion artefact, noise, etc. (dynamic numbering starts at 1 (NOT 0). If no dynamics are being excluded, put 0.
    
-5.	 Run FOREST:
+5.	 Run FOREST (for the Fetal Body):
 
  ` $ source forest_body.sh [complete path to folder with files] [scan_number] [number of echos] [dyn to exclude] `
 
          forest_body.sh /home/user/case0001 59 3 0 – no dynamics excluded
           i.e. forest_body.sh /home/user/case0001 59 3 2,3,4,5,12 – 2nd,3rd,4th, 5th, and 12th dynamic excluded from reconstruction
-  	 
+
+6. Run FOREST (for the Fetal Brain):
+
+   [Work in Progress....coming soon!!]
+   
 7.	If the automated body masking fails, there is the option to use a manual mask. This can be added as an additional input argument:
            `$ source forest_body.sh  /home/user/case0001 59 3 0 /home/user/case0001/case0001_body_mask.nii.gz`
 
