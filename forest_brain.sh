@@ -343,9 +343,6 @@ transform-image ../../reconstructions/recon_struct_brain_e0${nr_channel}.nii.gz 
 
 done
 
-#edit-image t2map_from_recon_brain.nii.gz ../../reconstructions/t2map_from_recon_brain.nii.gz -dofin_i reo-dofs/dof-to-atl.dof
-#transform-image ../../reconstructions/t2map_from_recon_brain.nii.gz ../../reconstructions/t2map_from_recon_brain.nii.gz -target ${brain_recon}
-
 cd ../../
 for nr_channel in $(seq 0 $nr_channels); do
 edit-image reconstructions/recon_struct_brain_e0${nr_channel}.nii.gz reconstructions/recon_struct_brain_e0${nr_channel}.nii.gz -origin 0 0 0 
