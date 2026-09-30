@@ -17,7 +17,7 @@
 # Input File Structure:
 # folder structure assumed in the path to files:
 # Folder with multi-echo files in nifti format: ME/n[scan_number]/*nii.gz
-# In the this ME/n[scan_number] folder, place a .txt file listing the echo times in ms
+# In the ME/n[scan_number] folder, place a .txt file listing the echo times in ms
 
 
 # setting up directories
@@ -57,6 +57,9 @@ echo "Number of echos: ${nr_echos}"
 echo "dynamics to exclude: ${dyn_to_exclude}"
 echo ""
 
+roi_recon="DSVR"
+roi_names="body"
+
 
 echo
 echo "-----------------------------------------------------------------------------"
@@ -67,7 +70,7 @@ echo
 
 # this script rearranges the files into the correct format and removes dynamics
 conda activate t2s_venv
-python remove_corrupted_body_dynamics.py $org_files $nr_me $nr_echos $dyn_to_exclude
+python remove_corrupted_dynamics.py $org_files $nr_me $nr_echos $dyn_to_exclude $roi_names
 
 cd $org_files/ME/n$nr_me
 
@@ -101,8 +104,7 @@ echo "Slice thickness: ${default_thickness}"
 echo "Reconstruction Resolution: ${default_resolution}"
 echo
 
-roi_recon="DSVR"
-roi_names="body"
+
 
 # stack_names: list of filenames of concat echo files
 stack_names=$(ls *e*.nii*)
@@ -373,7 +375,7 @@ echo
 
 
 # recon T2* fitting
-python ${SCRIPT_DIR}/t2s_fitting_body.py ${org_files} ${nr_me} ${nr_echos}
+python ${SCRIPT_DIR}/t2s_fitting.py ${org_files} ${nr_me} ${nr_echos} ${roi_names}
 
 
 echo 
@@ -398,7 +400,7 @@ rm -r reconstructions/body_seg_results/
 rm -r reconstructions/body_seg_results_PP/
 conda deactivate
 
-rm -r processing_body
+#rm -r processing_body
 
 
 
